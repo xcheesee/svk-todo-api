@@ -6,5 +6,5 @@ type Todo struct {
 	CategoriaId int    `json:"categoriaId"`
 	Titulo      string `json:"titulo"`
 	Descricao   string `json:"descricao"`
-	Data        string `json:"data"`
+	Created_at  string `json:"created_at"`
 }

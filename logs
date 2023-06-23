@@ -1,0 +1,5 @@
+2023/06/23 11:07:37 this user requires mysql native password authentication.
+2023/06/23 12:21:11 Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SELET * FROM todos' at line 1
+2023/06/23 12:22:05 Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SELET * FROM todos' at line 1
+2023/06/23 12:22:55 Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SELET * FROM todos' at line 1
+2023/06/23 12:27:11 Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'SELET * FROM todos' at line 1

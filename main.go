@@ -3,28 +3,45 @@ package main
 import (
 	//"encoding/json"
 	//"fmt"
+	"database/sql"
+	"log"
 	"net/http"
+	"os"
 	"svk-todo-api/controllers"
 	//"net/http"
 )
 
-func main() {
-	todoController := controllers.TController
+type Env struct {
+	db *sql.DB
+}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		todoController.All(w, req)
+func main() {
+	env := Env{}
+	db := connect()
+	h := controllers.NewBaseHandler(db)
+	mux := http.NewServeMux()
+
+	f, err := os.OpenFile("logs", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	log.SetOutput(f)
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		h.AllTodos(w, req, env.db)
 	})
-	http.HandleFunc("/todo/", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/todo/", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if req.Method == "POST" {
-			todoController.Add(w, req)
-		} else if req.Method == "GET" {
-			todoController.Get(w, req)
-		} else if req.Method == "DELETE" {
-			todoController.Del(w, req)
-		} else if req.Method == "PUT" {
-			todoController.Edit(w, req)
+		if req.Method == http.MethodPost {
+			h.AddTodo(w, req)
+		} else if req.Method == http.MethodGet {
+			h.GetTodo(w, req)
+		} else if req.Method == http.MethodDelete {
+			h.DelTodo(w, req)
+		} else if req.Method == http.MethodPut {
+			h.EditTodo(w, req)
 		}
 	})
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
 }

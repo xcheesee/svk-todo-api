@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"svk-todo-api/models"
@@ -10,7 +12,17 @@ import (
 
 var TController TodoController
 
-func (t TodoController) Add(w http.ResponseWriter, req *http.Request) {
+type BaseHandler struct {
+	db *sql.DB
+}
+
+func NewBaseHandler(db *sql.DB) *BaseHandler {
+	return &BaseHandler{
+		db: db,
+	}
+}
+
+func (h *BaseHandler) AddTodo(w http.ResponseWriter, req *http.Request) {
 	todos := Response{
 		Todos: []models.Todo{
 			{
@@ -19,7 +31,7 @@ func (t TodoController) Add(w http.ResponseWriter, req *http.Request) {
 				UsuarioId:   2,
 				Titulo:      "teste",
 				Descricao:   "Teste",
-				Data:        "21/06/2023",
+				Created_at:  "21/06/2023",
 			},
 			{
 				Id:          2,
@@ -27,7 +39,7 @@ func (t TodoController) Add(w http.ResponseWriter, req *http.Request) {
 				UsuarioId:   3,
 				Titulo:      "pog",
 				Descricao:   "champ",
-				Data:        "21/06/2023",
+				Created_at:  "21/06/2023",
 			},
 		},
 	}
@@ -37,73 +49,48 @@ func (t TodoController) Add(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(todos)
 }
 
-func (t TodoController) All(w http.ResponseWriter, req *http.Request) {
-	todos := Response{
-		Todos: []models.Todo{
-			{
-				Id:          1,
-				CategoriaId: 1,
-				UsuarioId:   2,
-				Titulo:      "teste",
-				Descricao:   "Teste",
-				Data:        "21/06/2023",
-			},
-			{
-				Id:          2,
-				CategoriaId: 2,
-				UsuarioId:   3,
-				Titulo:      "pog",
-				Descricao:   "champ",
-				Data:        "21/06/2023",
-			},
-		},
-	}
-	data, err := json.Marshal(todos)
+func (h *BaseHandler) AllTodos(w http.ResponseWriter, req *http.Request, db *sql.DB) {
+	var todos []models.Todo
+	rows, err := h.db.Query("SELECT * FROM todos")
 	if err != nil {
-		panic("encode error")
+		log.Fatal(err)
 	}
-	w.Write(data)
+	defer rows.Close()
+	for rows.Next() {
+		var todo models.Todo
+		if err := rows.Scan(&todo.Id, &todo.UsuarioId, &todo.CategoriaId, &todo.Titulo, &todo.Descricao, &todo.Created_at); err != nil {
+			log.Fatal(err)
+		}
+		todos = append(todos, todo)
+	}
+	json.NewEncoder(w).Encode(todos)
 }
 
-func (t TodoController) Get(w http.ResponseWriter, req *http.Request) {
+func (h *BaseHandler) GetTodo(w http.ResponseWriter, req *http.Request) {
+	var todo models.Todo
 	todoQueries := req.URL.Query()
 	todoId, err := strconv.Atoi(todoQueries.Get("id"))
 	if err != nil {
 		w.Write([]byte("Valor de id invalido"))
 		return
 	}
-	todos := Response{
-		Todos: []models.Todo{
-			{
-				Id:          1,
-				CategoriaId: 1,
-				UsuarioId:   2,
-				Titulo:      "teste",
-				Descricao:   "Teste",
-				Data:        "21/06/2023",
-			},
-			{
-				Id:          2,
-				CategoriaId: 2,
-				UsuarioId:   3,
-				Titulo:      "pog",
-				Descricao:   "champ",
-				Data:        "21/06/2023",
-			},
-		},
+	rows, err := h.db.Query("SELECT * FROM todos where id=?", todoId)
+	if err != nil {
+		log.Fatal(err)
 	}
-	for _, todo := range todos.Todos {
-		if todoId == todo.Id {
-			json.NewEncoder(w).Encode(todo)
+	defer rows.Close()
+	for rows.Next() {
+		if err := rows.Scan(&todo.Id, &todo.UsuarioId, &todo.CategoriaId, &todo.Titulo, &todo.Descricao, &todo.Created_at); err != nil {
+			log.Fatal(err)
 		}
 	}
-	w.Write([]byte("Todo nao encontrado"))
+	json.NewEncoder(w).Encode(todo)
 }
 
-func (t TodoController) Edit(w http.ResponseWriter, req *http.Request) {
+func (h *BaseHandler) EditTodo(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "todo Put test")
 }
 
-func (t TodoController) Del(w http.ResponseWriter, req *http.Request) {
+func (h *BaseHandler) DelTodo(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "todo Del test")
 }
