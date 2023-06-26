@@ -80,7 +80,14 @@ func (h *BaseHandler) GetTodo(w http.ResponseWriter, req *http.Request) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err := rows.Scan(&todo.Id, &todo.UsuarioId, &todo.CategoriaId, &todo.Titulo, &todo.Descricao, &todo.Created_at); err != nil {
+		if err := rows.Scan(
+			&todo.Id,
+			&todo.UsuarioId,
+			&todo.CategoriaId,
+			&todo.Titulo,
+			&todo.Descricao,
+			&todo.Created_at,
+		); err != nil {
 			log.Fatal(err)
 		}
 	}

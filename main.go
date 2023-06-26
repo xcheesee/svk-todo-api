@@ -1,14 +1,13 @@
 package main
 
 import (
-	//"encoding/json"
-	//"fmt"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"svk-todo-api/controllers"
-	//"net/http"
+	"svk-todo-api/pkg/db"
 )
 
 type Env struct {
@@ -17,7 +16,12 @@ type Env struct {
 
 func main() {
 	env := Env{}
-	db := connect()
+	db, err := db.NewSqlConn()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Connected")
+
 	h := controllers.NewBaseHandler(db)
 	mux := http.NewServeMux()
 
